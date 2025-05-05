@@ -1,0 +1,51 @@
+NOOP
+CybORG.Shared.Actions.Action.Sleep
+    Do nothing, get a fresh Observation
+
+FILE FEATURE UPDATE
+CybORG.Shared.Actions.AbstractActions.Analyse
+    Run "malware scan" on host provided
+    Will return additional features 
+        'Density' (float, 0-1) 
+        'Signed' (bool) 
+    for any files that it thinks are malicous 
+
+PROCESS+SESSION DELETE
+CybORG.Shared.Actions.AbstractActions.Remove
+    Removes any non-priviledged shells 
+    (deletes the process and session nodes)
+    Code seems to suggest it only deletes "suspicious PIDs" but
+    unclear how this determination is made 
+
+PROCESS+SESSION+FILE+CONNECTION DELETE
+CybORG.Shared.Actions.AbstractActions.Restore
+    Removes all nodes/edges that have been added since the
+    beginning of the sim. 
+    Note: may want to add 'new' feature to nodes to determine
+    which have been added and which persist between wipes?
+    Effective, but huge penalty
+
+PROCESS+SESSION FEATURE UPDATE
+CybORG.Shared.Actions.AbstractActions.Monitor
+    Determines which procs/sessions are suspicious (I think?)
+    Pretty sure this needs to be called before Remove
+
+PROCESS CREATE
+CybORG.Shared.Actions.AbstractActions.Misinform
+    Selects a random decoy from the below list to create
+
+PROCESS CREATE
+Decoys:
+    All spin up decoy processes if certain ports are open 
+    and for some of them, iff the target host is a windows machine
+        
+    CybORG.Shared.Actions.ConcreteActions.
+        DecoyApache
+        DecoyFemitter
+        DecoyHarakaSMPT
+        DecoySmss
+        DecoySSHD
+        DecoySvchost
+        DecoyTomcat
+        DecoyVsftpd
+    

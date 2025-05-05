@@ -1,0 +1,93 @@
+Hostname: 
+    // These should all be used as node features for the host
+    // FixedFlatWrapper does a good job of vectorizing this for us 
+    // Just need to pop hostname feature (since it will be a graph id) 
+    // and should be the first 17 features it returns
+    System Info: {
+        Hostname (str, same as above),
+        Architecture (enum.Architecture),
+        OSDistro (enum.OperatingSystemDistribution),
+        OSType (enum.OperatingSystemType),
+        OSVersion (enum.OperatingSystemVersion),
+        OSKernelVersion (enum.OperatingSystemKernelVersion),
+        Local Time (datetime),
+        os_patches [(enum.OperatingSystemPatch)]
+    },
+
+    Processes: [{
+        PID (this.uuid),
+        PPID (parent.uuid),
+        ProcessName (str), 
+        Username (str, edge to User node?),
+        Path (str, edge to File node?),
+        
+        KnownProcess (enum.ProcessName),
+        KnownPath (enum.Path),
+        ProcessType (enum.ProcessType),
+        ProcessVersion (enum.ProcessVersion),
+        Vulnerability (enum.Vulnerability),
+
+        // Edges to other host/user nodes
+        Connections: [{
+            local_port (int), 
+            remote_port (int, usually junk),
+            local_address (this host's IP),
+            Remote Address (other host's IP),
+            Application Protocol (enum.AppProtocol), 
+            Status (enum.ProcessState)
+        }],
+
+        // May want to add feature for 
+        is_decoy (bool, true if created using one of the decoy actions)
+    }],
+
+    Files: [{
+        File Name (str)
+        Path (str, uuid), // Maybe use Path + FileName + hostname as uuid?
+        Username (str, edge to User),
+        Group Name (srt, edge to Group),
+        Known Path (enum.Path),
+        Known File (enum.FileType),
+        Type (enum.FileType),
+        Vendor (enum.Vendor), 
+        Version (enum.FileVersion),
+        Last Modified Time (datetime, not implemented in FixedFlatWrapper),
+        User Permissions (int 0-7),
+        Group Permissions (ditto),
+        Default Permissions (ditto), 
+
+        // After action ANALYZE
+        Density (float, how malicious the file is),
+        Signed (bool)
+    }],
+
+    Users: [{
+        Username (str, uuid),
+        Password (str),
+        Password Hash (str),
+        Password Hash Type (enum.PasswordHashType),
+        UID (int, not really used),
+        Logged in (unsure, FixedFlatWrapper casts it to float),
+        Groups [{
+            GID (group uuid),
+            Builtin Group (enum.BuiltInGroups, seems unused),
+            Group Name (str, also seems unused)
+        }]
+    }],
+
+    // Active termnial sessions opened on this machine
+    // implemented as sublcass of process 
+    Sessions: [{
+        ID (str, uuid)
+        Username (str, uuid edge to User node),
+        Type (enum.SessionType),
+        Timeout (datetime, I assume, but seems unused),
+        PID (str, uuid to Process node but seems unused)
+    }],
+
+    // IP address(es?) this machine uses 
+    Interface: [{
+        Interface Name (str, e.g. 'eth0'),
+        Subnet (str, maybe uuid to subnet node if we want?),
+        IP Address (str, uuid of IP associated w this machine)
+    }]

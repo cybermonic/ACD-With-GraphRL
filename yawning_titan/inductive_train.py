@@ -9,7 +9,7 @@ from model.inductive_ppo import InductiveGraphPPO, PPOMemory
 MAX_STEPS = 5e6
 
 # Stable baselines hyperparams
-EPOCHS = 10 #10
+EPOCHS = 10 
 BATCH_SIZE=64
 N = 5
 C_LR = 0.001

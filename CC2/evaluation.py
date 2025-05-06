@@ -254,5 +254,6 @@ if __name__ == "__main__":
 
             all_r.append(mean(total_reward))
 
+    print(f'Total: {sum(all_r)}')
     with open(fname, 'a') as f: 
         f.write(f"Total,{sum(all_r)}\n\n")

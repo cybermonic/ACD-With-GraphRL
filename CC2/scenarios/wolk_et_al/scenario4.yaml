@@ -287,17 +287,9 @@ Hosts:
   Defender:
     AWS_Info: []
     image: Velociraptor_Server
-  Enterprise1:
-    AWS_Info: []
-    image: Gateway
-    info:
-      Enterprise1:
-        Interfaces: All
-    ConfidentialityValue: Medium
-    AvailabilityValue: Medium
   Enterprise0:
     AWS_Info: []
-    image: Internal
+    image: Gateway
     info:
       Enterprise0:
         Interfaces: All
@@ -308,6 +300,14 @@ Hosts:
     image: Internal
     info:
       Enterprise2:
+        Interfaces: All
+    ConfidentialityValue: Medium
+    AvailabilityValue: Medium
+  Enterprise1:
+    AWS_Info: []
+    image: Internal
+    info:
+      Enterprise1:
         Interfaces: All
       Op_Server0:
         Interfaces: IP Address

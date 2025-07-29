@@ -192,8 +192,12 @@ if __name__ == "__main__":
     ap.add_argument('-s', '--scenario', default='scenarios/cage2.yaml')
     ap.add_argument('--ni', action='store_true')
     ap.add_argument('--self-attn', action='store_true')
+    ap.add_argument('--naive', action='store_true')
     ap.add_argument('--globalnode', action='store_true')
     ap.add_argument('--cardiff', action='store_true')
+    ap.add_argument('--bline', action='store_true')
+    ap.add_argument('--meander', action='store_true')
+    ap.add_argument('--deterministic', action='store_true')
     ap.add_argument('--num_nodes', default=None, type=int)
     args = ap.parse_args()
 
@@ -216,22 +220,37 @@ if __name__ == "__main__":
         fname = 'global_node.txt'
 
     # Inductive
-    else:
+    elif args.naive:
         agent = load_inductive_ppo('model_weights/inductive_simple.pt')
         agent.set_deterministic(True, num_nodes=args.num_nodes)
         fname = 'ind_results.txt'
 
     # Self attention
-    if args.self_attn:
+    elif args.self_attn:
         agent = load_inductive_ppo('model_weights/inductive_self-attn.pt')
         agent.set_deterministic(True)
         fname = 'self-attn_results.txt'
     
     # Cardiff
-    if args.cardiff:
+    elif args.cardiff:
         agent = MainAgent()
         wrap = wrap_cardiff
         fname = 'cardiff.txt'
+
+    # Only trained against BLine
+    elif args.bline: 
+        agent = load_gnn_ablation('model_weights/bline.pt', globalnode=True)
+        agent.set_deterministic(True)
+        fname = 'bline.txt'
+
+    # Only trained against meander
+    elif args.meander: 
+        agent = load_gnn_ablation('model_weights/meander.pt', globalnode=True)
+        agent.set_deterministic(True)
+        fname = 'meander.txt'
+
+    else:
+        raise ValueError("Unknown or unspecified model type")
 
     print(f'Using agent {agent.__class__.__name__}, if this is incorrect please update the code to load in your agent')
 
@@ -239,7 +258,6 @@ if __name__ == "__main__":
     with open(fname, 'a') as f:
         f.write(path + '\n')
 
-    
     all_r = []
     print(f'using CybORG v{cyborg_version}, {scenario}\n')
     for num_steps in [30, 50, 100]:

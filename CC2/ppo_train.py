@@ -1,11 +1,11 @@
-from argparse import ArgumentParser 
+from argparse import ArgumentParser
 import inspect
-import random 
+import random
 from types import SimpleNamespace
 
 from joblib import Parallel, delayed
-import torch 
-from tqdm import tqdm 
+import torch
+from tqdm import tqdm
 
 from CybORG import CybORG
 from CybORG.Agents import B_lineAgent, RedMeanderAgent, SleepAgent
@@ -19,7 +19,7 @@ from wrapper.observation_graph import ObservationGraph
 
 DEFAULT_DIM = ObservationGraph.DIM + 4
 
-torch.set_num_threads(16)
+torch.set_num_threads(32)
 HYPER_PARAMS = SimpleNamespace(
     N = 100,     # How many episodes before training
     bs = 2500,   # How many steps to learn from at a time
@@ -30,15 +30,15 @@ HYPER_PARAMS = SimpleNamespace(
 GENERATE_VIZ_DATA=False
 
 @torch.no_grad()
-def generate_episode(agent, hp): 
+def generate_episode(agent, hp):
     torch.set_num_threads(1)
 
-    red_agent = random.choice([RedMeanderAgent, B_lineAgent])
-    wrapped = GraphWrapper('Blue', CybORG(path, 'sim', agents={'Red': red_agent})) 
+    red_agent = B_lineAgent #random.choice([RedMeanderAgent, B_lineAgent])
+    wrapped = GraphWrapper('Blue', CybORG(path, 'sim', agents={'Red': red_agent}))
     mem = PPOMemory(0)
 
     state = wrapped.reset()
-    for step_cnt in range(hp.episode_len): 
+    for step_cnt in range(hp.episode_len):
         action,value,prob = agent.get_action(state)
         next_state, reward, _,_ = wrapped.step(action)
         mem.remember(state, action, value, prob, reward, 0 if step_cnt < hp.episode_len-1 else 1)
@@ -49,7 +49,7 @@ def generate_episode(agent, hp):
 def train(agent, hp):
     agent.train()
 
-    with open(f'logs/{hp.fnames}.txt', 'w+') as f: 
+    with open(f'logs/{hp.fnames}.txt', 'w+') as f:
         f.write('epoch,avg_r,loss\n')
 
     for e in range(1,hp.training_episodes):
@@ -58,9 +58,9 @@ def train(agent, hp):
         )
 
         mem = PPOMemory(hp.bs).load(mems)
-        agent.memory = mem 
-        avg_r = sum(mem.r) / hp.N 
-        
+        agent.memory = mem
+        avg_r = sum(mem.r) / hp.N
+
         torch.set_num_threads(16)
         print(f"[{e}] Average reward: {avg_r}")
         loss = agent.learn()
@@ -69,7 +69,7 @@ def train(agent, hp):
             f.write(f'{e},{avg_r},{loss}\n')
 
         agent.save(outf=f'checkpoints/{hp.fnames}.pt')
-        if e % 1000 == 0: 
+        if e % 1000 == 0:
             agent.save(outf=f'checkpoints/{hp.fnames}_{e//1000}.pt')
 
 
@@ -97,25 +97,25 @@ if __name__ == '__main__':
 
     if args.inductive or args.attn or args.globalnode:
         agent = InductiveGraphPPOAgent(
-            DEFAULT_DIM, 
+            DEFAULT_DIM,
             args.gnn,
             bs=HYPER_PARAMS.bs,
-            a_kwargs={'lr': 0.0003, 'hidden1': args.hidden, 'hidden2': args.embedding}, 
+            a_kwargs={'lr': 0.0003, 'hidden1': args.hidden, 'hidden2': args.embedding},
             c_kwargs={'lr': 0.001, 'hidden1': args.hidden, 'hidden2': args.embedding},
             clip=0.2,
-            epochs=HYPER_PARAMS.epochs, 
-            naive= not args.attn, 
+            epochs=HYPER_PARAMS.epochs,
+            naive= not args.attn,
             globalnode= args.globalnode
         )
     else:
         agent = GraphPPOAgent(
-            DEFAULT_DIM, 
+            DEFAULT_DIM,
             bs=HYPER_PARAMS.bs,
-            a_kwargs={'lr': 0.0003, 'hidden1': args.hidden, 'hidden2': args.embedding}, 
+            a_kwargs={'lr': 0.0003, 'hidden1': args.hidden, 'hidden2': args.embedding},
             c_kwargs={'lr': 0.001, 'hidden1': args.hidden, 'hidden2': args.embedding},
             clip=0.2,
             epochs=HYPER_PARAMS.epochs
         )
-    
+
     HYPER_PARAMS.fnames = args.name
     train(agent, HYPER_PARAMS)

@@ -10,13 +10,13 @@ from joblib import Parallel, delayed
 from env.yt_env import YTEnv, BlueAgent, build_graph, seed
 from model.doorman_et_al import DoormanAgent, DQN_Buffer
 
-MAX_STEPS = 5e6
+MAX_STEPS = 120_000#5e6
 
 # Stable baselines hyperparams
 EPOCHS = 1
-BATCH_SIZE=64
-GAMMA = 0.95
-N = 5
+BATCH_SIZE=2048
+GAMMA = 1
+N = 1
 C_LR = 0.001
 A_LR = 0.0003
 CLIP = 0.2
@@ -91,10 +91,10 @@ def experiment(env: YTEnv, agent: BlueAgent, domain_randomization=False):
         updates += 1 
 
         print(f'[{tr_steps}] Avg r: {avg_r:0.2f}, Avg l: {avg_l:0.2f}, Buffer: {len(main_mem.s)}, Eps: {eps:0.4f}')
-        torch.save({'rews': ep_rews, 'lens': ep_lens, 'steps': ep_steps}, f'logs/dqn_{GRAPH_SIZE}N_{SEED}.pt')
+        torch.save({'rews': ep_rews, 'lens': ep_lens, 'steps': ep_steps}, f'logs/dqn_{GRAPH_SIZE}N_gamma1_{SEED}.pt')
         
         if updates % 50 == 0:
-            model.save(f'saved_models/dqn_{GRAPH_SIZE}N_{SEED}_last.pt')
+            model.save(f'saved_models/dqn_{GRAPH_SIZE}N_gamma1_{SEED}_last.pt')
             tgt_model = deepcopy(model)
 
         if domain_randomization:
@@ -102,7 +102,7 @@ def experiment(env: YTEnv, agent: BlueAgent, domain_randomization=False):
             env = YTEnv(x,ei)
             agent = BlueAgent(env, agent.model, inductive=agent.inductive)
 
-    model.save(f'saved_models/dqn_{GRAPH_SIZE}N_{SEED}_last.pt')
+    model.save(f'saved_models/dqn_{GRAPH_SIZE}N_gamma1_{SEED}_last.pt')
 
 if __name__ == '__main__':
     ap = ArgumentParser()

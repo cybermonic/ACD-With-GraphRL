@@ -14,15 +14,17 @@ ap.add_argument('n', nargs=1, type=int)
 ap.add_argument('-s', '--seed', default=0, type=int)
 ap.add_argument('-e', '--eps', default=0, type=float)
 ap.add_argument('--dir', default='')
+ap.add_argument('--model-n', type=int, default=-1)
 
 args = ap.parse_args()
 
 N = args.n[0]
+MODEL_N = args.model_n if args.model_n > 0 else N
 SEED = args.seed
 
 #MODEL = f'dqn_40N_{SEED}_last'
-FNAME = f'dqn_{N}N_{SEED}_last'
-model = load_doorman('saved_models/' + FNAME + '.pt')
+FNAME = f'dqn_{MODEL_N}N_{SEED}_last'
+model = load_doorman('saved_models/doorman_lr0001_N1_gamma1/' + FNAME + '.pt')
 
 model.eval()
 torch.no_grad()
